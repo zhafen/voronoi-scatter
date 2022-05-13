@@ -280,9 +280,9 @@ def scatter(
             
         # Add a label, trying a few orientations
         if labels is not None:
-            has = [ 'left', 'center', 'right' ]
-            vas = [ 'bottom', 'center', 'top' ]
-            offsets = offset_magnitude * np.array([ 1, 0, -1 ])
+            has = [ 'left', 'right', 'center' ]
+            vas = [ 'bottom', 'top', 'center' ]
+            offsets = offset_magnitude * np.array([ 1, -1, 0 ])
             break_out = False
             for iii in [ 0, 1, 2 ]:
                 for jjj in [ 0, 1, 2 ]:
@@ -290,7 +290,7 @@ def scatter(
                     xytext = np.array([ offsets[iii], offsets[jjj] ])
 
                     # Handle diagonals
-                    if ( iii != 1 ) & ( jjj != 1 ):
+                    if ( iii != 2 ) & ( jjj != 2 ):
                         xytext = xytext / np.sqrt( 2. )
 
                     used_kwargs = dict(
