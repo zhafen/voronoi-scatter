@@ -276,3 +276,17 @@ class TestVoronoiScatter( unittest.TestCase ):
             colors = z,
             hatching = hatching,
         )
+
+    ########################################################################
+
+    def test_plot_label_box( self ):
+
+        x = np.random.uniform( size=n )
+        y = np.random.uniform( size=n )
+        labels = np.arange( n ).astype( str )
+
+        ax, vor = voronoi_scatter.scatter(
+            x, y,
+            labels = labels,
+            plot_label_box = True,
+        )
