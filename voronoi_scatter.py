@@ -1,3 +1,4 @@
+import copy
 import numpy as np
 import scipy
 import scipy.spatial
@@ -120,15 +121,24 @@ def scatter(
         
     # Limits
     if xlim is None:
+        if ax.get_xscale() == 'log':
+            x = np.log10( x )
         xmin = np.nanmin( x )
         xmax = np.nanmax( x )
         xwidth = xmax - xmin
         xlim = [ xmin - 0.1 * xwidth, xmax + 0.1 * xwidth ]
+        if ax.get_xscale() == 'log':
+            xlim = 10.**np.array( xlim )
     if ylim is None:
+        # Auto limits depends on if logscale or not
+        if ax.get_yscale() == 'log':
+            y = np.log10( y )
         ymin = np.nanmin( y )
         ymax = np.nanmax( y )
         ywidth = ymax - ymin
         ylim = [ ymin - 0.1 * ywidth, ymax + 0.1 * ywidth ]
+        if ax.get_yscale() == 'log':
+            ylim = 10.**np.array( ylim )
     if ( vmin is None ) and ( colors is not None ):
         vmin = np.nanmin( colors )
     if ( vmax is None ) and ( colors is not None ):
@@ -180,6 +190,12 @@ def scatter(
             **used_scatter_kwargs
         )
 
+    # Work in log space if log axes
+    if ax.get_xscale() == 'log':
+        points[:,0] = np.log10( points[:,0] )
+    if ax.get_yscale() == 'log':
+        points[:,1] = np.log10( points[:,1] )
+
     vor = scipy.spatial.Voronoi( points, qhull_options=qhull_options )
     
     ptp_bound = vor.points.ptp( axis=0 )
@@ -220,10 +236,19 @@ def scatter(
             if len( add_vertices ) > 0:
                 vertices = np.concatenate( [ vertices, add_vertices ], axis=0 )
             else:
-                import pdb; pdb.set_trace()
+                raise Exception( 'No vertex found, crashing.' )
+
+        # Convert back to non-logspace prior to making vertices
+        # This is only done for the polygon that will be plotted
+        vertices_for_plot = copy.copy( vertices )
+        if ax.get_xscale() == 'log':
+            vertices_for_plot[:,0] = 10.**vertices_for_plot[:,0]
+        if ax.get_yscale() == 'log':
+            vertices_for_plot[:,1] = 10.**vertices_for_plot[:,1]
             
         # Construct a shapely polygon for the region
         region_polygon = Polygon( vertices ).convex_hull
+        region_polygon_for_plot = Polygon( vertices_for_plot ).convex_hull
         
         # Plot the cell
         if plot_cells:
@@ -242,7 +267,7 @@ def scatter(
             if hatching is not None:
                 used_cell_kwargs['hatch'] = hatching[i]
             patch = PolygonPatch(
-                region_polygon,
+                region_polygon_for_plot,
                 facecolor = facecolor,
                 edgecolor = edgecolor,
                 **used_cell_kwargs
@@ -266,9 +291,20 @@ def scatter(
                         fontsize = fontsize,
                     )
                     used_kwargs.update( label_kwargs )
+
+                    # Place points, accounting for scale
+                    if ax.get_xscale() == 'log':
+                        x_point = 10.**point[0]
+                    else:
+                        x_point = point[0]
+                    if ax.get_yscale() == 'log':
+                        y_point = 10.**point[1]
+                    else:
+                        y_point = point[1]
+
                     text = ax.annotate(
                         text = labels[i],
-                        xy = point,
+                        xy = ( x_point, y_point ),
                         **used_kwargs
                     )
                     text.set_path_effects([
@@ -281,7 +317,15 @@ def scatter(
                     display_to_data = ax.transData.inverted()
                     text_data_corners = display_to_data.transform( bbox_text.corners() )
                     text_data_corners = text_data_corners[[0,1,3,2],:] # Reformat
-                    text_polygon = Polygon( text_data_corners )
+
+                    # Create two versions, one for logspace calcs and one for plotting
+                    text_data_corners_for_calc = copy.copy( text_data_corners )
+                    if ax.get_xscale() == 'log':
+                        text_data_corners_for_calc[:,0] = np.log10( text_data_corners_for_calc[:,0] )
+                    if ax.get_yscale() == 'log':
+                        text_data_corners_for_calc[:,1] = np.log10( text_data_corners_for_calc[:,1] )
+                    text_polygon = Polygon( text_data_corners_for_calc )
+                    text_polygon_for_plot = Polygon( text_data_corners )
                     
                     text.set_visible( False )
                     
@@ -295,20 +339,20 @@ def scatter(
                         continue
                         
                     # If it doesn't fit in the bounds try again
-                    if text_polygon.bounds[0] < xlim[0]:
+                    if text_polygon_for_plot.bounds[0] < xlim[0]:
                         continue
-                    if text_polygon.bounds[1] < ylim[0]:
+                    if text_polygon_for_plot.bounds[1] < ylim[0]:
                         continue
-                    if text_polygon.bounds[2] > xlim[1]:
+                    if text_polygon_for_plot.bounds[2] > xlim[1]:
                         continue
-                    if text_polygon.bounds[3] > ylim[1]:
+                    if text_polygon_for_plot.bounds[3] > ylim[1]:
                         continue
 
                     # If we find a good option stop iterating
                     text.set_visible( True )
                     if plot_label_box:
                         patch = PolygonPatch(
-                            text_polygon,
+                            text_polygon_for_plot,
                             facecolor = 'none',
                             edgecolor = 'k',
                         )

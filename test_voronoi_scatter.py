@@ -290,3 +290,26 @@ class TestVoronoiScatter( unittest.TestCase ):
             labels = labels,
             plot_label_box = True,
         )
+
+    ########################################################################
+
+    def test_logscale( self ):
+
+        x = 10.**np.random.uniform( size=n )
+        y = 10.**np.random.uniform( size=n )
+        labels = np.arange( n ).astype( str )
+
+        fig = plt.figure()
+        ax = plt.gca()
+
+        ax.set_xscale( 'log' )
+        ax.set_yscale( 'log' )
+
+        ax, vor = voronoi_scatter.scatter(
+            x, y,
+            ax = ax,
+            labels = labels,
+            plot_cells = True,
+            plot_label_box = True,
+        )
+
