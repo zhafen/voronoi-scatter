@@ -40,7 +40,11 @@ def scatter(
     **scatter_kwargs
 ):
     '''Matplotlib scatter plot with labels placed in voronoi cells
-    if there is space.
+    if there is space. The calculations used to make this possible
+    rely on converting to-and-from display vs data units. As such,
+    adjustments to axis limits or scale should be performed *prior*
+    to calling this function, or as part of this function
+    (w/ e.g. xlim).
 
     Args:
     x, y: float or array-like, shape (n, )
