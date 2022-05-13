@@ -286,9 +286,16 @@ def scatter(
             break_out = False
             for iii in [ 0, 1, 2 ]:
                 for jjj in [ 0, 1, 2 ]:
+
+                    xytext = np.array([ offsets[iii], offsets[jjj] ])
+
+                    # Handle diagonals
+                    if ( iii != 1 ) & ( jjj != 1 ):
+                        xytext = xytext / np.sqrt( 2. )
+
                     used_kwargs = dict(
                         xycoords = 'data',
-                        xytext = ( offsets[iii], offsets[jjj] ),
+                        xytext = xytext,
                         textcoords = 'offset points',
                         ha = has[iii],
                         va = vas[jjj],
