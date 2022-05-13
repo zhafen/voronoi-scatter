@@ -9,7 +9,7 @@ import voronoi_scatter
 
 ########################################################################
 
-filepath = './tests/data/arxiv_source/Hafen2019/CGM_origin.tex'
+n = 50
 
 ########################################################################
 
@@ -36,7 +36,6 @@ class TestVoronoiScatter( unittest.TestCase ):
 
     def test_runs( self ):
 
-        n = 20
         x = np.random.uniform( size=n )
         y = np.random.uniform( size=n )
 
@@ -49,7 +48,6 @@ class TestVoronoiScatter( unittest.TestCase ):
 
     def test_labels( self ):
 
-        n = 20
         x = np.random.uniform( size=n )
         y = np.random.uniform( size=n )
         labels = np.arange( n ).astype( str )
@@ -63,7 +61,6 @@ class TestVoronoiScatter( unittest.TestCase ):
 
     def test_label_kwargs( self ):
 
-        n = 20
         x = np.random.uniform( size=n )
         y = np.random.uniform( size=n )
         labels = np.arange( n ).astype( str )
@@ -75,9 +72,22 @@ class TestVoronoiScatter( unittest.TestCase ):
         )
 
     ########################################################################
+
+    def test_fontsize( self ):
+
+        x = np.random.uniform( size=n )
+        y = np.random.uniform( size=n )
+        labels = np.arange( n ).astype( str )
+
+        ax, vor = voronoi_scatter.scatter(
+            x, y,
+            labels = labels,
+            fontsize = 5,
+        )
+
+    ########################################################################
     def test_offset_magnitudes( self ):
 
-        n = 20
         x = np.random.uniform( size=n )
         y = np.random.uniform( size=n )
         labels = np.arange( n ).astype( str )
@@ -92,7 +102,6 @@ class TestVoronoiScatter( unittest.TestCase ):
 
     def test_provide_axis( self ):
 
-        n = 20
         x = np.random.uniform( size=n )
         y = np.random.uniform( size=n )
         labels = np.arange( n ).astype( str )
@@ -110,7 +119,6 @@ class TestVoronoiScatter( unittest.TestCase ):
 
     def test_set_lim( self ):
 
-        n = 20
         x = np.random.uniform( size=n )
         y = np.random.uniform( size=n )
         labels = np.arange( n ).astype( str )
@@ -121,11 +129,11 @@ class TestVoronoiScatter( unittest.TestCase ):
             xlim = [ 0, 0.5 ],
             ylim = [ 0, 0.5 ],
         )
+
     ########################################################################
 
     def test_cells( self ):
 
-        n = 20
         x = np.random.uniform( size=n )
         y = np.random.uniform( size=n )
         labels = np.arange( n ).astype( str )
@@ -138,9 +146,55 @@ class TestVoronoiScatter( unittest.TestCase ):
 
     ########################################################################
 
+    def test_scatter_naive_usage( self ):
+
+        x = np.random.uniform( size=n )
+        y = np.random.uniform( size=n )
+        z = np.random.uniform( size=n )
+        labels = np.arange( n ).astype( str )
+
+        ax, vor = voronoi_scatter.scatter(
+            x, y,
+            labels = labels,
+            color = 'k',
+            edgecolors = 'b',
+        )
+
+    ########################################################################
+
+    def test_scatter_colors( self ):
+
+        x = np.random.uniform( size=n )
+        y = np.random.uniform( size=n )
+        z = np.random.uniform( size=n )
+        labels = np.arange( n ).astype( str )
+
+        ax, vor = voronoi_scatter.scatter(
+            x, y,
+            labels = labels,
+            colors = z,
+        )
+
+    ########################################################################
+
+    def test_scatter_edgecolors( self ):
+
+        x = np.random.uniform( size=n )
+        y = np.random.uniform( size=n )
+        z = np.random.uniform( size=n )
+        labels = np.arange( n ).astype( str )
+
+        ax, vor = voronoi_scatter.scatter(
+            x, y,
+            labels = labels,
+            colors = z,
+            edgecolors = z / 2.,
+        )
+
+    ########################################################################
+
     def test_cell_colors( self ):
 
-        n = 20
         x = np.random.uniform( size=n )
         y = np.random.uniform( size=n )
         z = np.random.uniform( size=n )
@@ -155,9 +209,26 @@ class TestVoronoiScatter( unittest.TestCase ):
 
     ########################################################################
 
+    def test_cell_colors_vlim( self ):
+
+        x = np.random.uniform( size=n )
+        y = np.random.uniform( size=n )
+        z = np.random.uniform( size=n )
+        labels = np.arange( n ).astype( str )
+
+        ax, vor = voronoi_scatter.scatter(
+            x, y,
+            labels = labels,
+            plot_cells = True,
+            colors = z,
+            vmin = 0.5,
+            vmax = 0.8,
+        )
+
+    ########################################################################
+
     def test_cell_colors_norm( self ):
 
-        n = 20
         x = np.random.uniform( size=n )
         y = np.random.uniform( size=n )
         z = np.random.uniform( size=n )
@@ -175,7 +246,6 @@ class TestVoronoiScatter( unittest.TestCase ):
 
     def test_cell_kwargs( self ):
 
-        n = 20
         x = np.random.uniform( size=n )
         y = np.random.uniform( size=n )
         z = np.random.uniform( size=n )
@@ -187,4 +257,22 @@ class TestVoronoiScatter( unittest.TestCase ):
             plot_cells = True,
             colors = z,
             cell_kwargs = { 'alpha': 0.5 },
+        )
+
+    ########################################################################
+
+    def test_hatching( self ):
+
+        x = np.random.uniform( size=n )
+        y = np.random.uniform( size=n )
+        z = np.random.uniform( size=n )
+        hatching = np.array([ '/', '//', None ])[np.random.randint( 0, 3, n )]
+        labels = np.arange( n ).astype( str )
+
+        ax, vor = voronoi_scatter.scatter(
+            x, y,
+            labels = labels,
+            plot_cells = True,
+            colors = z,
+            hatching = hatching,
         )

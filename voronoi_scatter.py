@@ -16,6 +16,7 @@ def scatter(
     x,
     y,
     labels = None,
+    fontsize = 10,
     label_kwargs = {},
     offset_magnitude = 5,
     ax = None,
@@ -26,12 +27,12 @@ def scatter(
     cell_kwargs = {},
     colors = None,
     color_default = 'none',
-    vmin = None,
-    vmax = None,
     edgecolors = None,
     edgecolor_default = 'k',
     cmap = 'cubehelix',
     norm = None,
+    vmin = None,
+    vmax = None,
     hatching = None,
     plot_label_box = False,
     qhull_options = 'Qbb Qc Qz',
@@ -46,6 +47,9 @@ def scatter(
 
     labels: array-like of strs, shape (n, )
         Labels for the plots.
+
+    fontsize: int
+        Fontsize for labels.
     
     label_kwargs: dict
         Keyword arguments passed to ax.annotate for the labels.
@@ -72,8 +76,39 @@ def scatter(
     cell_kwargs: dict
         Keyword arguments passed to descartes.patch.PolygonPatch
 
+    colors: None or array-like, shape (n, )
+        Colors for each scatter point or cell. Transformed into actual colors with cmap.
+
+    color_default: str
+        Default color for points and cells
+
+    edgecolors: None or array-like, shape (n, )
+        Edgecolors for each scatter point or cell. Transformed into actual colors with cmap.
+
+    edgecolor_default: str
+        Default edgecolor for poitns and cells
+
+    cmap: str or colormap instance
+        Colormap to use
+
+    norm: None or matplotlib.colors normalization object.
+        Normalization for the colors.
+
     vmin, vmax: None or float
-        Colorbar limits. Overriden by norm, if passed.
+        Color limits. Overriden by norm, if passed.
+
+    hatching: None or array-like of strs, shape (n, )
+        Hatching to use for cells.
+
+    plot_label_box: bool
+        If True plot a box around each label. Useful for debugging.
+
+    qhull_options: str
+        Additional options to pass to Qhull via scipy.spatial.Voronoi.
+        See Qhull manual for details.
+
+    **scatter_kwargs
+        Additional arguments passed to ax.scatter
     '''
 
     # Format data
@@ -113,23 +148,36 @@ def scatter(
     if labels is not None:
         labels = np.array( labels )[unique_inds]
     if colors is not None:
-        colors = colors[unique_inds]
+        colors = np.array( colors )[unique_inds]
         colors = cmap( norm( colors ) )
     if edgecolors is not None:
-        edgecolors = edgecolors[unique_inds]
-        edgecolors = cmap( norm( edgecolors ) )
+        try:
+            edgecolors = np.array( edgecolors )[unique_inds]
+            edgecolors = cmap( norm( edgecolors ) )
+        except IndexError:
+            warnings.warn( 'edgecolors could not be converted to an array' )
     if hatching is not None:
         hatching = hatching[unique_inds]
         if ( edgecolor_default == 'none' ) or ( edgecolors is not None ):
             warnings.warn( 'Hatchcolor and edgecolor are the same in matplotlib.' )
 
+    # Matplotlib scatter plot
     if plot_scatter:
-        # Matplotlib scatter plot
+
+        used_scatter_kwargs = {}
+        if colors is None:
+            used_scatter_kwargs['color'] = color_default
+        if edgecolors is None:
+            used_scatter_kwargs['edgecolors'] = edgecolor_default
+        else:
+            used_scatter_kwargs['edgecolors'] = edgecolors
+        used_scatter_kwargs.update( scatter_kwargs )
+
         x, y = points.transpose()
         ax.scatter(
             x, y,
             c = colors,
-            **scatter_kwargs
+            **used_scatter_kwargs
         )
 
     vor = scipy.spatial.Voronoi( points, qhull_options=qhull_options )
@@ -215,6 +263,7 @@ def scatter(
                         textcoords = 'offset points',
                         ha = has[iii],
                         va = vas[jjj],
+                        fontsize = fontsize,
                     )
                     used_kwargs.update( label_kwargs )
                     text = ax.annotate(
